@@ -281,7 +281,16 @@ password = ""
 commandprefix = "!"
 chatprefix = "."
 
+# settings for the discord chatbot that can report server events and respond to commands.
+# disabled by default.
+[discord]
+enabled = false
+token = ""
+channelid = ""
 
+# prefixes discord users must use for bot to process as command or to send to game chat.
+discord_commandpref = "!"
+discord_chatpref = "."
 
 [ssh]
 # enable the ssh manhole server

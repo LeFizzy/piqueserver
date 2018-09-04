@@ -1,5 +1,6 @@
 import math
 from typing import List, Tuple, Optional, Union
+import asyncio
 
 from twisted.internet import reactor
 from twisted.logger import Logger
@@ -87,6 +88,8 @@ class FeatureConnection(ServerConnection):
                  ip=self.address[0], pid=self.player_id)
         self.protocol.irc_say('* %s (IP %s, ID %s) entered the game!' %
                               (self.name, self.address[0], self.player_id))
+        self.protocol.discord_say('* %s (IP %s, ID %s) entered the game!' %
+                              (self.name, self.address[0], self.player_id))
         if self.user_types is None:
             self.user_types = pyspades.types.AttributeSet()
             self.rights = pyspades.types.AttributeSet()
@@ -105,6 +108,8 @@ class FeatureConnection(ServerConnection):
         if self.name is not None:
             log.info('{name} disconnected!', name=self.printable_name)
             self.protocol.irc_say('* %s (IP %s) disconnected' %
+                                  (self.name, self.address[0]))
+            self.protocol.discord_say('* %s (IP %s) disconnected' %
                                   (self.name, self.address[0]))
             self.protocol.player_memory.append((self.name, self.address[0]))
         else:

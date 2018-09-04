@@ -155,6 +155,7 @@ logging_profile_option = logging_config.option('profile', False)
 set_god_build = config.option('set_god_build', False)
 ssh_enabled = config.section('ssh').option('enabled', False)
 irc_options = config.option('irc', {})
+discord_options = config.option('discord', {})
 status_server_enabled = config.section(
     'status_server').option('enabled', False)
 ban_publish = bans_config.option('publish', False)
@@ -252,6 +253,7 @@ class FeatureProtocol(ServerProtocol):
     everyone_is_admin = False
     player_memory = None
     irc_relay = None
+    discord_relay = None
     balanced_teams = None
     timestamps = None
     building = True
@@ -379,6 +381,10 @@ class FeatureProtocol(ServerProtocol):
         if irc.get('enabled', False):
             from piqueserver.irc import IRCRelay
             self.irc_relay = IRCRelay(self, irc)
+        discord = discord_options.get()
+        if discord.get('enabled', False):
+            from piqueserver.discord import DiscordRelay
+            self.discord_relay = DiscordRelay(self, discord)
         if status_server_enabled.get():
             from piqueserver.statusserver import StatusServerFactory
             self.status_server = StatusServerFactory(self)
@@ -727,6 +733,10 @@ class FeatureProtocol(ServerProtocol):
             else:
                 self.irc_relay.send(msg, do_filter=True)
 
+    async def discord_say(self, msg: str) -> None:
+        if self.discord_relay:
+           await self.discord_relay.send(msg)
+
     def send_tip(self):
         line = self.tips[random.randrange(len(self.tips))]
         self.send_chat(line)
@@ -734,12 +744,14 @@ class FeatureProtocol(ServerProtocol):
 
     # pylint: disable=arguments-differ
     def broadcast_chat(self, value, global_message=True, sender=None,
-                       team=None, irc=False):
+                       team=None, irc=False, discord=False):
         """
         Send a chat message to many users
         """
         if irc:
             self.irc_say('* %s' % value)
+        if discord:
+            self.discord_say('* %s' % value)
         ServerProtocol.send_chat(self, value, global_message, sender, team)
 
     # backwards compatability
